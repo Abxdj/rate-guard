@@ -71,7 +71,7 @@ ALGORITHM=sliding_window   # or token_bucket, leaky_bucket
 npm test
 ```
 
-## Stress Testing (Week 3)
+## Stress Testing 
 
 ```bash
 npx autocannon -c 50 -d 10 http://localhost:3000/api/data
@@ -79,4 +79,4 @@ npx autocannon -c 50 -d 10 http://localhost:3000/api/data
 
 ---
 
-**Stack:** Node.js · Express · Redis (ioredis) · Jest · Django (Week 2) · Streamlit (Week 4)
+**Stack:** Node.js · Express · Redis (ioredis) · Jest · Django  · Streamlit 
