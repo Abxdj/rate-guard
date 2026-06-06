@@ -14,11 +14,13 @@ Client → Node.js (rate-guard) → Redis (counters)
 
 ## Algorithms
 
-| Algorithm | Best for | Trade-off |
-|---|---|---|
-| Token bucket | Burst-tolerant APIs | Slightly complex refill logic |
-| Sliding window | Strict per-minute limits | More Redis memory (one entry/request) |
-| Leaky bucket | Smooth, constant throughput | Can feel too strict for bursty clients |
+| Algorithm | Avg Latency | Req/Sec | Best for | Trade-off |
+|---|---|---|---|---|
+| Token Bucket | 10.13ms | ~4,744 | Burst-tolerant APIs | Allows bursts up to capacity |
+| Leaky Bucket | 10.06ms | ~4,751 | Smooth, constant throughput | Too strict for bursty clients |
+| Sliding Window | 12.19ms | ~3,936 | Strict per-minute limits | ~20% slower — stores one Redis entry per request |
+
+> Tested with autocannon: 50 concurrent connections over 10 seconds on localhost.
 
 ## Quick Start
 

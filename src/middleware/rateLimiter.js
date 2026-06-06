@@ -1,10 +1,11 @@
 const { tokenBucket } = require("../algorithms/tokenBucket");
 const { slidingWindow } = require("../algorithms/slidingWindow");
+const { leakyBucket } = require("../algorithms/leakyBucket");
 
 const ALGORITHMS = {
   token_bucket: tokenBucket,
   sliding_window: slidingWindow,
-  // leaky_bucket added in Week 3
+  leaky_bucket: leakyBucket,
 };
 
 /**
