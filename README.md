@@ -1,6 +1,6 @@
 # rate-guard
 
-A production-style rate limiting service built with Node.js, Express, and Redis. Implements three algorithms that can be swapped via config. Designed to sit in front of any backend service (includes a Django integration in Week 2).
+A production-style rate limiting service built with Node.js, Express, and Redis. Implements three algorithms switchable via config. Protects a Django REST API via custom middleware. Includes a real-time monitoring dashboard.
 
 ## Architecture
 
@@ -25,25 +25,49 @@ Client → Node.js (rate-guard) → Redis (counters)
 ## Quick Start
 
 ```bash
-# 1. Copy env config
-cp .env.example .env
+# 1. Clone the repo
+git clone https://github.com/Abxdj/rate-guard.git
+cd rate-guard
 
-# 2. Start Redis (Docker)
-docker run -p 6379:6379 redis:alpine
-
-# 3. Install and run
+# 2. Install Node dependencies
 npm install
+
+# 3. Copy env config
+copy env.example .env
+
+# 4. Start Memurai (Redis for Windows) — runs as a service automatically
+
+# 5. Start the rate limiter
 npm run dev
+
+# 6. Start the Django API (separate terminal)
+cd protected_api
+pip install django djangorestframework requests
+python manage.py migrate
+python manage.py runserver 8000
+
+# 7. Start the dashboard (separate terminal)
+cd ..
+pip install streamlit redis
+streamlit run dashboard/app.py
 ```
 
 ## Endpoints
 
+### Node.js (port 3000)
 | Method | Path | Description |
 |---|---|---|
 | GET | /health | Health check, no rate limiting |
 | GET | /api/data | Protected — returns sample data |
 | GET | /api/status | Protected — returns uptime |
-| POST | /check | Used by Django middleware to pre-check a request |
+| POST | /check | Used by Django middleware to pre-check requests |
+
+### Django (port 8000)
+| Method | Path | Description |
+|---|---|---|
+| GET | /api/data/ | Protected data endpoint |
+| GET | /api/status/ | Service status |
+| GET | /api/search/?q= | Search endpoint |
 
 ## Response Headers
 
@@ -79,6 +103,14 @@ npm test
 npx autocannon -c 50 -d 10 http://localhost:3000/api/data
 ```
 
----
+## Key Design Decisions
 
-**Stack:** Node.js · Express · Redis (ioredis) · Jest · Django  · Streamlit 
+**Why Lua scripts in Redis?** The check-and-update must be atomic. Without it, two concurrent requests can both read "1 token left" before either writes back — allowing both through. Redis executes Lua scripts with no interruption, making race conditions impossible.
+
+**Why fail open when Redis is down?** If the rate limiter itself goes down, requests pass through rather than blocking all traffic. In a production system this would be configurable per route.
+
+**Why sliding window is slower?** It stores one entry per request in a sorted set vs token bucket's two-field hash. More accurate, more memory, ~20% more latency.
+
+---
+## Stack
+Node.js · Express · Redis (ioredis) · Django · Django REST Framework · Streamlit · Jest
